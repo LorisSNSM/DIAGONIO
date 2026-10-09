@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#12314a">
+<meta name="description" content="Assistant de diagnostic guidé hors connexion pour RHOTHETA RT-300 et TAIYO TD-L1550A.">
+<link rel="manifest" href="manifest.json">
+<title>Diagnostic goniomètres</title>
+<style>
+:root{--navy:#12314a;--blue:#1e6386;--pale:#eef5f8;--ink:#172a36;--muted:#5d6b73;--line:#d7e1e6;--warn:#fff4dc;--red:#fff0ee;--green:#e9f6ef}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:#f3f6f8;line-height:1.45}
+header{background:var(--navy);color:white;padding:18px max(16px,calc((100vw - 900px)/2));}
+header h1{font-size:1.35rem;margin:0 0 4px}header p{margin:0;color:#dbe8ef;font-size:.92rem}
+main{max-width:900px;margin:auto;padding:16px;display:grid;gap:14px}
+.card{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 2px 8px #16394b0a}
+h2{font-size:1.1rem;margin:0 0 12px}h3{font-size:1rem;margin:12px 0 6px}
+label{display:block;font-weight:650;margin:10px 0 5px}select,input,textarea{font:inherit;width:100%;border:1px solid #b9c9d1;border-radius:10px;padding:11px;background:white;color:var(--ink)}
+textarea{min-height:78px;resize:vertical}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:11px 14px;cursor:pointer;background:var(--blue);color:white}
+button.secondary{background:#e8f0f4;color:var(--navy);border:1px solid var(--line)}button.danger{background:#9d3028}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.muted{color:var(--muted);font-size:.91rem}
+.notice{border-radius:12px;padding:12px;background:var(--warn);border:1px solid #ead49e}.dangerbox{background:var(--red);border-color:#e9b8b2}.okbox{background:var(--green);border-color:#b9dfc9}
+.hidden{display:none!important}.chip{display:inline-block;border-radius:999px;background:var(--pale);padding:3px 9px;font-size:.82rem;font-weight:700;color:var(--navy)}
+.result{border-left:4px solid var(--blue);padding:10px 12px;background:#f7fafb;border-radius:0 10px 10px 0;margin:10px 0}
+.result p{margin:5px 0}.step{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+footer{max-width:900px;margin:auto;padding:0 16px 24px;color:var(--muted);font-size:.82rem}
+@media(max-width:600px){.grid{grid-template-columns:1fr}header{padding:16px}.actions button{flex:1 1 140px}}
+@media print{body{background:white}header{background:white;color:black;padding:0 0 12px}header p{color:#333}main{padding:0;display:block}.card{box-shadow:none;border:0;padding:8px 0;break-inside:avoid}.no-print,footer{display:none!important}.hidden{display:none!important}.result,.notice{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+</style>
+</head>
+<body>
+<header>
+<h1>Assistant de diagnostic — radiogoniomètres</h1>
+<p>RHOTHETA RT-300 · TAIYO TD-L1550A · fonctionnement local</p>
+</header>
+<main>
+<section class="card">
+<h2>1 · Ouvrir une fiche de diagnostic</h2>
+<div class="grid">
+<div><label for="model">Appareil</label><select id="model"><option value="rt">RHOTHETA RT-300</option><option value="taiyo">TAIYO TD-L1550A</option></select></div>
+<div><label for="date">Date</label><input id="date" type="date"></div>
+<div><label for="unit">Repère du poste (facultatif)</label><input id="unit" placeholder="Ex. passerelle / poste bâbord"></div>
+<div><label for="symptom">Symptôme principal</label><select id="symptom"></select></div>
+</div>
+<label for="when">Contexte / circonstances d'apparition</label><textarea id="when" placeholder="Ex. après démarrage moteur, après pluie, depuis une intervention…"></textarea>
+<label for="display">Message ou indication affichée (facultatif)</label><input id="display" placeholder="Ex. tirets, LAST, valeur instable…">
+<label for="signal">Un signal connu a-t-il été testé ?</label><select id="signal"><option value="unknown">Pas encore / inconnu</option><option value="yes">Oui, signal reçu</option><option value="no">Oui, aucun signal reçu</option></select>
+<div class="notice dangerbox" style="margin-top:14px"><strong>Limites de sécurité</strong><br>Ne pas ouvrir le boîtier, intervenir sur l'antenne en hauteur, débrancher un câble sous tension, émettre sur une fréquence de détresse, ni effectuer de mesure si vous n'êtes pas formé. Ne jamais utiliser ce diagnostic comme unique moyen de navigation ou de recherche et sauvetage. En cas de doute, maintenir les procédures opérationnelles du bord et signaler l'équipement indisponible.</div>
+<div class="actions no-print"><button id="diagnose">Afficher les contrôles guidés</button><button class="secondary" id="newcase">Nouvelle fiche</button></div>
+</section>
+
+<section class="card hidden" id="guided">
+<h2>2 · Contrôles simples guidés</h2>
+<p class="muted">Cochez les observations. Les causes proposées sont des pistes de dépannage, pas des conclusions certaines.</p>
+<div id="steps"></div>
+<label for="notes">Notes / contrôles effectués</label><textarea id="notes" placeholder="Résultats, valeurs lues, anomalie constatée…"></textarea>
+<div class="actions no-print"><button id="evaluate">Évaluer les pistes possibles</button></div>
+</section>
+
+<section class="card hidden" id="outcome">
+<h2>3 · Résultat provisoire</h2>
+<div class="notice" id="summary"></div>
+<div id="causes"></div>
+<div class="notice dangerbox"><strong>Arrêter et transmettre à un technicien si :</strong> odeur de brûlé, échauffement, fusible qui saute à nouveau, connecteur/câble endommagé, humidité dans l'appareil, alimentation hors plage, ou relèvement incohérent persistant. Ne pas multiplier les remises sous tension.</div>
+<label for="actionTaken">Décision / action retenue</label><textarea id="actionTaken" placeholder="Ex. appareil signalé indisponible, maintenance demandée…"></textarea>
+<div class="actions no-print">
+<button id="save">Enregistrer dans l'historique</button><button class="secondary" id="pdf">Créer le rapport PDF / imprimer</button>
+</div>
+</section>
+
+<section class="card">
+<h2>Historique local</h2>
+<p class="muted">Les fiches sont conservées uniquement sur cet appareil/navigateur. Elles ne sont pas synchronisées ni sauvegardées ailleurs automatiquement.</p>
+<div id="history"></div>
+<div class="actions no-print"><button class="secondary" id="export">Exporter l'historique (JSON)</button><button class="danger" id="clearHistory">Effacer l'historique</button></div>
+<input class="hidden" type="file" id="importFile" accept="application/json">
+<div class="actions no-print"><button class="secondary" id="importBtn">Importer un historique JSON</button></div>
+</section>
+<section class="card">
+<h2>À propos de cette version</h2>
+<p>Version initiale d'aide à l'équipage. Les contrôles se limitent aux observations et manipulations normales décrites dans les notices. Les seuils, codes d'erreur et procédures de maintenance internes ne sont pas inventés. Les résultats dépendent de la configuration réelle, de l'installation et de la version logicielle.</p>
+<p class="muted">Le rapport est généré par la fonction d'impression du navigateur : choisir « Enregistrer au format PDF ». Aucun service en ligne n'est appelé par cette application.</p>
+</section>
+</main>
+<footer>Outil d'aide au dépannage — ne remplace ni les notices constructeur, ni les procédures du navire, ni l'avis d'un technicien qualifié.</footer>
+<script>
+const $=id=>document.getElementById(id);
+const now=new Date(); $('date').value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+const symptoms={
+ rt:[
+ ['power','Ne s’allume pas / redémarre'],
+ ['bearing','S’allume mais aucun relèvement exploitable'],
+ ['wrong','Relèvement instable ou incohérent'],
+ ['weak','Signal faible ou absent'],
+ ['audio','Aucun son'],
+ ['scan','Balayage / sélection canal-fréquence anormal'],
+ ['intermittent','Panne intermittente']
+ ],
+ taiyo:[
+ ['power','Ne s’allume pas / redémarre'],
+ ['bearing','Pas de relèvement en mode DF'],
+ ['wrong','Relèvement instable ou incohérent'],
+ ['weak','Signal faible ou absent'],
+ ['audio','Aucun son'],
+ ['scan','Balayage mémoire ou sélection de canal anormal'],
+ ['intermittent','Panne intermittente']
+ ]};
+const checkDefs={
+ rt:[
+ ['power','Alimentation du poste conforme à la procédure du bord, sans ouvrir l’appareil ?','Une alimentation absente/instable ou une protection déclenchée est une piste prioritaire. Si un fusible saute de nouveau, arrêter.'],
+ ['on','Commande ON/OFF utilisée conformément à la notice (appui long d’au moins 1 s pour l’allumage) ?','Une séquence d’allumage incorrecte peut être confondue avec une panne.'],
+ ['mode','Bande maritime/aéronautique et canal/fréquence adaptés au test ?','Un réglage ou une bande incorrecte peut expliquer une absence apparente de réception.'],
+ ['df','Mode de fonctionnement adapté au relèvement (et non simple réception) ?','Le mode de réception peut afficher la réception sans présenter le relèvement attendu.'],
+ ['antenna','Aucun dommage visible ou connecteur manifestement desserré sur les câbles accessibles sans danger ?','Câble, connecteur ou antenne : piste possible. Ne pas grimper ni démonter.'],
+ ['known','Essai réalisé avec un signal connu et autorisé, dans les conditions habituelles ?','Sans signal de référence, il est difficile de distinguer un défaut du récepteur d’une absence de signal.'],
+ ['squelch','Le réglage de squelch a-t-il été vérifié sans masquer le signal ?','Un seuil trop élevé peut couper l’audio ou rendre la réception difficile à constater.'],
+ ['ref','Le repère de relèvement (REL/MAG/TRU) est-il compris et cohérent avec la configuration du bord ?','Un référentiel ou une entrée de compas mal configurés peuvent donner une lecture mal interprétée.']
+ ],
+ taiyo:[
+ ['power','Alimentation du poste vérifiée selon la procédure du bord (plage nominale indiquée dans la notice : 10–16 V DC) ?','Alimentation absente/instable ou protection déclenchée : piste prioritaire. Ne pas mesurer si vous n’êtes pas formé.'],
+ ['on','Le poste est-il allumé et l’affichage est-il stable ?','Un affichage absent ou qui redémarre peut orienter vers l’alimentation ou l’appareil.'],
+ ['mode','Le mode DF est-il sélectionné pour obtenir un relèvement, et non RCV ?','En mode RCV, le relèvement n’est pas affiché.'],
+ ['channel','Le canal/fréquence sélectionné correspond-il au signal de test ?','Une sélection erronée peut donner l’impression que la réception est en panne.'],
+ ['antenna','Aucun dommage visible sur l’antenne/câble/connecteurs accessibles en sécurité ?','L’antenne Adcock EA-351A, son câble ou ses connecteurs peuvent être en cause ; inspection technique si doute.'],
+ ['known','Essai réalisé avec un signal connu et autorisé ?','Un test avec signal connu aide à distinguer problème de réception et absence de signal.'],
+ ['squelch','Le squelch a-t-il été ajusté selon la notice pour ne pas fermer la réception ?','Un réglage de squelch inadapté peut masquer un signal faible.'],
+ ['strength','L’indicateur de puissance du signal réagit-il lorsqu’un signal connu est reçu ?','Si l’indicateur reste nul, la réception, le réglage, le câblage ou l’antenne sont des pistes ; cela ne localise pas à lui seul la panne.']
+ ]};
+let activeCase=null, activeChecks=[];
+function fillSymptoms(){ $('symptom').innerHTML=symptoms[$('model').value].map(s=>`<option value="${s[0]}">${s[1]}</option>`).join('');}
+$('model').addEventListener('change',fillSymptoms);fillSymptoms();
+function getChecks(){return checkDefs[$('model').value];}
+function diagnose(){
+ const model=$('model').value; activeChecks=[];
+ $('steps').innerHTML=getChecks().map((c,i)=>`<div class="step"><label><input style="width:auto;margin-right:8px" type="checkbox" id="c${i}" value="${c[0]}"> ${c[1]}</label><p class="muted">${c[2]}</p><label for="r${i}">Résultat</label><select id="r${i}"><option value="unknown">Non vérifié / inconnu</option><option value="ok">Contrôle satisfaisant</option><option value="bad">Anomalie constatée</option><option value="na">Non applicable</option></select></div>`).join('');
+ $('guided').classList.remove('hidden');$('outcome').classList.add('hidden');$('guided').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('diagnose').onclick=diagnose;
+$('newcase').onclick=()=>{ $('unit').value='';$('when').value='';$('display').value='';$('notes').value='';$('actionTaken').value='';$('signal').value='unknown';$('guided').classList.add('hidden');$('outcome').classList.add('hidden');$('date').value=new Date().toISOString().slice(0,10);};
+function modelName(){return $('model').value==='rt'?'RHOTHETA RT-300':'TAIYO TD-L1550A'}
+function evaluate(){
+ const symptom=$('symptom').value, model=$('model').value, signal=$('signal').value;
+ const vals=getChecks().map((c,i)=>({id:c[0],question:c[1],advice:c[2],result:$('r'+i).value,checked:$('c'+i).checked}));
+ const anomalies=vals.filter(v=>v.result==='bad');
+ const unchecked=vals.filter(v=>v.result==='unknown');
+ let causes=[];
+ const add=(rank,title,why,action)=>causes.push({rank,title,why,action});
+ if(symptom==='power'){
+  add(1,'Alimentation ou protection électrique','Piste prioritaire si aucun affichage, redémarrages ou extinction.','Vérifier uniquement les indications et protections accessibles selon les procédures du bord ; si une protection déclenche à nouveau, arrêter.');
+  add(2,'Commande ou défaut interne','À envisager si l’alimentation externe semble normale et la commande est utilisée correctement.','Ne pas ouvrir le boîtier ; transmettre à la maintenance.');
+ } else if(symptom==='bearing'||symptom==='wrong'){
+  add(1,'Mode, canal/fréquence ou référentiel de relèvement','Un mauvais mode, réglage ou référentiel peut expliquer l’absence ou la mauvaise interprétation du relèvement.','Confirmer le mode et le signal de test ; pour RT-300, vérifier la signification REL/MAG/TRU.');
+  add(2,'Antenne, câble ou connectique','Piste plus importante si la réception est faible, intermittente ou si une anomalie visible existe.','Inspection visuelle uniquement ; demander une vérification technique si le doute persiste.');
+  add(3,'Réception ou traitement interne','À envisager si les réglages sont confirmés et le défaut persiste avec un signal connu.','Noter les observations et transmettre au technicien.');
+ } else if(symptom==='weak'){
+  add(1,'Signal de test, canal/fréquence ou squelch','À vérifier en premier car ces points peuvent imiter une panne de réception.','Reprendre un test autorisé avec signal connu et vérifier le réglage de squelch.');
+  add(2,'Antenne, câble ou connecteurs','Possible si l’indicateur de signal reste faible ou si le défaut est intermittent.','Inspection visuelle sans démontage ni accès dangereux.');
+  add(3,'Défaut de réception interne','À envisager si le défaut est reproductible sur un signal connu.','Consigner les résultats ; maintenance qualifiée.');
+ } else if(symptom==='audio'){
+  add(1,'Volume, squelch ou mode de réception','Réglages à vérifier avant de conclure à un défaut matériel.','Vérifier volume, squelch et réception d’un signal connu.');
+  add(2,'Haut-parleur, sortie audio ou défaut interne','Possible si l’indication de réception réagit mais qu’aucun son n’est entendu.','Ne pas démonter ; transmettre à la maintenance.');
+ } else if(symptom==='scan'){
+  add(1,'Configuration des canaux/fréquences ou mémoires','Une programmation ou une sélection incorrecte peut empêcher le comportement attendu.','Revoir les étapes de sélection et, pour le TAIYO, les adresses/groupes mémoire.');
+  add(2,'Réglage de commande ou défaut intermittent','À envisager si les commandes ne répondent pas normalement.','Noter la séquence exacte et demander une vérification si cela persiste.');
+ } else {
+  add(1,'Alimentation, connectique ou commande intermittente','À envisager si le défaut varie avec le temps, les vibrations ou après démarrage.','Noter les circonstances ; ne pas manipuler les câbles sous tension.');
+  add(2,'Humidité, antenne ou défaut interne','Piste possible après intempéries ou si l’anomalie se répète.','Arrêter en présence d’humidité interne, d’échauffement ou de dommage visible ; faire vérifier.');
+ }
+ if(anomalies.length){
+  causes.unshift({rank:0,title:'Anomalie constatée lors des contrôles',why:anomalies.map(a=>a.question).join(' '),action:'Traiter cette anomalie en priorité selon la procédure du bord ; si elle concerne câble, alimentation ou comportement anormal, ne pas poursuivre au-delà des contrôles simples.'});
+ }
+ if(signal==='no') causes.unshift({rank:0,title:'Aucun signal connu reçu lors du test',why:'Le test ne permet pas encore de conclure à une panne du goniomètre : vérifier d’abord que le signal, le canal/fréquence et les conditions du test sont valides.',action:'Répéter seulement avec un signal connu et autorisé, selon les procédures du bord.'});
+ const checkedGood=vals.filter(v=>v.result==='ok').length;
+ const summary=`Appareil : ${modelName()}. Symptôme : ${symptoms[model].find(s=>s[0]===symptom)[1]}. ${checkedGood} contrôle(s) déclaré(s) satisfaisant(s), ${anomalies.length} anomalie(s) constatée(s), ${unchecked.length} contrôle(s) non vérifié(s). Les causes ci-dessous sont des hypothèses à vérifier, pas un diagnostic certain.`;
+ $('summary').textContent=summary;
+ $('causes').innerHTML=causes.map((c,i)=>`<div class="result"><span class="chip">${c.rank===0?'À traiter / vérifier':('Piste '+(i+1))}</span><h3>${c.title}</h3><p><strong>Pourquoi :</strong> ${c.why}</p><p><strong>Suite proposée :</strong> ${c.action}</p></div>`).join('');
+ activeCase={id:Date.now(),date:$('date').value,unit:$('unit').value,model:modelName(),symptom:symptoms[model].find(s=>s[0]===symptom)[1],symptomId:symptom,when:$('when').value,display:$('display').value,signal,checks:vals,notes:$('notes').value,actionTaken:$('actionTaken').value,causes,summary};
+ $('outcome').classList.remove('hidden');$('outcome').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('evaluate').onclick=evaluate;
+function collectCurrent(){
+ if(!activeCase) return null;
+ activeCase.date=$('date').value;activeCase.unit=$('unit').value;activeCase.when=$('when').value;activeCase.display=$('display').value;activeCase.notes=$('notes').value;activeCase.actionTaken=$('actionTaken').value;
+ return activeCase;
+}
+function getHistory(){try{return JSON.parse(localStorage.getItem('df_history')||'[]')}catch(e){return []}}
+function setHistory(h){localStorage.setItem('df_history',JSON.stringify(h));renderHistory()}
+$('save').onclick=()=>{const c=collectCurrent();if(!c)return;let h=getHistory();h.unshift(c);setHistory(h);alert('Fiche enregistrée sur cet appareil.');};
+$('pdf').onclick=()=>{collectCurrent();window.print()};
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderHistory(){
+ const h=getHistory();const el=$('history');
+ if(!h.length){el.innerHTML='<p class="muted">Aucune fiche enregistrée.</p>';return}
+ el.innerHTML=h.map((c,i)=>`<div class="step"><strong>${esc(c.date)} — ${esc(c.model)}</strong><p>${esc(c.symptom)}${c.unit?' · '+esc(c.unit):''}</p><p class="muted">${esc(c.summary||'')}</p><div class="actions no-print"><button class="secondary" onclick="loadCase(${i})">Afficher le résumé</button><button class="danger" onclick="deleteCase(${i})">Supprimer</button></div></div>`).join('');
+}
+window.deleteCase=i=>{if(confirm('Supprimer cette fiche de l’historique local ?')){let h=getHistory();h.splice(i,1);setHistory(h)}};
+window.loadCase=i=>{const c=getHistory()[i];if(!c)return;alert(`${c.date} — ${c.model}\n${c.symptom}\n\n${c.summary}\n\nNotes : ${c.notes||'—'}\nAction : ${c.actionTaken||'—'}`)};
+$('export').onclick=()=>{const blob=new Blob([JSON.stringify(getHistory(),null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='historique-diagnostic-goniometres.json';a.click();URL.revokeObjectURL(a.href)};
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data))throw Error('format');setHistory([...data,...getHistory()]);alert('Historique importé.')}catch(err){alert('Fichier JSON invalide.')}e.target.value=''};
+$('clearHistory').onclick=()=>{if(confirm('Effacer tout l’historique local ? Pensez à exporter une sauvegarde avant.')){localStorage.removeItem('df_history');renderHistory()}};
+renderHistory();
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
+</script>
+</body>
+</html>
