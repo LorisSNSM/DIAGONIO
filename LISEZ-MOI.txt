@@ -28,3 +28,10 @@ Les pistes sont heuristiques, non validées par le constructeur, et ne prouvent 
 
 VALIDATION REQUISE AVANT USAGE OPÉRATIONNEL
 Faire relire les libellés et l'arbre de diagnostic par le responsable électronique/maintenance du navire et comparer chaque procédure avec la version exacte des notices à bord.
+
+
+MISE À JOUR v2 — 15/10/2026
+- Ajout d’une notice de référence détaillée pour le TAIYO TD-L1550A : modes, canaux, volume/squelch, mémoires, scan, installation et limites de maintenance.
+- La rubrique est consultable hors connexion depuis la carte « Notice de référence — TAIYO TD-L1550A ».
+- Le cache du service worker a été incrémenté pour demander le chargement de cette version.
+- Les procédures de maintenance interne restent réservées à une personne qualifiée.

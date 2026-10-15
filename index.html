@@ -79,8 +79,69 @@ footer{max-width:900px;margin:auto;padding:0 16px 24px;color:var(--muted);font-s
 <div class="actions no-print"><button class="secondary" id="importBtn">Importer un historique JSON</button></div>
 </section>
 <section class="card">
+<h2>Notice de référence — TAIYO TD-L1550A</h2>
+<p>Cette rubrique reprend les informations utiles de la notice constructeur complète (édition de février 2009). Elle est disponible hors connexion. Les réglages installés peuvent dépendre des options configurées à l'usine.</p>
+<details><summary><strong>1. Reconnaître les modes et les indications</strong></summary>
+<ul>
+<li><strong>DF :</strong> mode goniométrique ; affiche le relèvement du signal par rapport à l'axe de proue du navire.</li>
+<li><strong>RCV :</strong> mode réception ; la notice précise que le relèvement n'est pas affiché dans ce mode.</li>
+<li><strong>DEG :</strong> relèvement numérique par pas de 1°. L'indicateur linéaire donne une lecture visuelle plus rapide.</li>
+<li><strong>Indicateur de niveau :</strong> 6 niveaux d'intensité du signal. Il ne permet pas, à lui seul, de localiser une panne.</li>
+<li><strong>CH :</strong> canaux VHF 01–88 ; U1–U4 pour météo ; F1–F3 pour pêche ; EP pour 121,5 MHz.</li>
+<li><strong>SCAN rouge :</strong> allumé pendant le balayage. SHIP, COAST et WEATHER indiquent le type sélectionné.</li>
+</ul></details>
+<details><summary><strong>2. Sélectionner un canal en réception manuelle</strong></summary>
+<ul>
+<li><strong>Canal maritime :</strong> appuyer sur <strong>SHIP</strong> ou <strong>COAST</strong>, saisir le numéro du canal, puis <strong>ENT</strong>. Exemple : SHIP → 1 → 2 → ENT pour le canal 12.</li>
+<li><strong>Canal météo :</strong> appuyer sur <strong>W/F</strong>, saisir 1 à 4, puis ENT — uniquement si l'option météo a été configurée sur l'appareil.</li>
+<li><strong>Canal pêche :</strong> W/F, saisir 1 à 3, puis ENT — uniquement si l'option pêche a été configurée.</li>
+<li><strong>121,5 MHz (EPIRB) :</strong> la notice donne SHIP → 9 → 9 → ENT. Utiliser seulement en réception et conformément aux procédures du bord ; ne pas émettre sur une fréquence de détresse.</li>
+<li>Une erreur de saisie est signalée par un bip court : reprendre la séquence avec le bon numéro.</li>
+</ul></details>
+<details><summary><strong>3. Volume, squelch et luminosité</strong></summary>
+<ul>
+<li><strong>VOL :</strong> régler le volume sur 16 niveaux ; l'indicateur linéaire indique le niveau choisi.</li>
+<li><strong>SQ :</strong> régler le squelch sur 16 niveaux. La touche permet de fermer ou d'ouvrir le squelch ; un squelch trop fermé peut masquer un signal faible.</li>
+<li><strong>DIM :</strong> appuyer plusieurs fois pour choisir parmi 4 niveaux de luminosité.</li>
+<li>Si le son est absent, vérifier d'abord le volume, l'état du squelch, le mode et la présence d'un signal connu autorisé. Si l'indicateur de niveau réagit mais pas le son, noter ce constat pour la maintenance.</li>
+</ul></details>
+<details><summary><strong>4. Mémoires et réception ponctuelle (SPOT)</strong></summary>
+<ul>
+<li>La mémoire comporte jusqu'à 100 adresses, de 00 à 99 ; chaque adresse correspond à un groupe de dix (00–09 = groupe 0, 10–19 = groupe 1, etc.).</li>
+<li><strong>Enregistrer :</strong> sélectionner le canal (SHIP/COAST → numéro → ENT), appuyer sur M, saisir l'adresse à deux chiffres, puis M pour valider.</li>
+<li><strong>Rappeler :</strong> M → adresse à deux chiffres → ENT.</li>
+<li><strong>Effacer une adresse :</strong> la notice indique 9 → 7 → M → adresse → ENT. Cette action est destructive : elle est réservée au personnel autorisé, après vérification de l'adresse.</li>
+<li>Éviter l'effacement complet de la mémoire dans le cadre d'un diagnostic équipage.</li>
+</ul></details>
+<details><summary><strong>5. Balayage mémoire (SCAN)</strong></summary>
+<ul>
+<li>Les canaux à balayer doivent être enregistrés au préalable dans les adresses mémoire.</li>
+<li>Fermer le squelch, appuyer sur M, saisir le groupe de début et le groupe de fin, puis appuyer sur S. Exemple de la notice : M → 2 → 4 → S balaie les adresses 20 à 49, puis recommence.</li>
+<li>Le balayage s'arrête lorsqu'un signal ouvre le squelch. Appuyer sur S pour relancer le balayage ou pour le suspendre selon l'état indiqué.</li>
+<li><strong>Passer une adresse :</strong> lorsque le balayage est arrêté, 9 → 9 → S. <strong>Annuler les passages :</strong> 9 → 8 → S. Ces fonctions modifient le comportement du balayage ; noter les réglages avant toute modification.</li>
+<li>La notice décrit aussi des options de maintien/reprise automatique (touches 0 à 4 pendant le scan). En cas de comportement inattendu, consigner la touche utilisée et demander vérification plutôt que modifier les réglages au hasard.</li>
+</ul></details>
+<details><summary><strong>6. Contrôles d'installation — à faire vérifier par un technicien</strong></summary>
+<ul>
+<li>Antenne : modèle EA-351A, type Adcock à 4 éléments. La marque BOW doit être orientée vers la proue et parallèle à l'axe longitudinal du navire.</li>
+<li>Implantation recommandée par la notice : aussi proche que possible de l'axe de quille et en position haute ; distances suffisantes vis-à-vis des antennes VHF, radar, structures métalliques, haubans et câbles.</li>
+<li>Câble d'antenne : deux lignes de même longueur ; si leur longueur est modifiée, l'écart entre elles doit rester inférieur ou égal à 10 mm. La notice déconseille de couper ou rallonger le câble sans respecter les spécifications.</li>
+<li>Le câble doit être protégé de la chaleur et des dommages mécaniques, et son entrée doit rester étanche. Vérifier le repère rouge du connecteur BNC.</li>
+<li>Un câble d'antenne mal installé, une orientation erronée, une mise à la masse insuffisante ou des interférences avec radar/émetteurs peuvent dégrader la performance.</li>
+<li><strong>Réservé à la maintenance :</strong> mesures de continuité/isolement, contrôles de câblage, réglages internes, tests avec générateur de signal, ouverture du boîtier et ajustements de direction. Ne pas les réaliser dans le cadre du diagnostic équipage.</li>
+</ul></details>
+<details><summary><strong>7. Caractéristiques à connaître</strong></summary>
+<ul>
+<li>Alimentation spécifiée : 10 à 16 V DC, négatif relié à la masse. Ne pas tenter de modifier l'alimentation.</li>
+<li>Fusible indiqué par la notice : 2 A. Un fusible qui fond de nouveau après remplacement nécessite l'arrêt des essais et l'intervention de la maintenance ; ne jamais le shunter.</li>
+<li>Sortie audio : 2 W sous 4 Ω. Température de fonctionnement spécifiée : 0 à 45 °C.</li>
+<li>La notice recommande un contrôle des fonctions (réception ponctuelle, volume, squelch, scan) et une vérification des interférences avec les autres équipements électroniques de navigation.</li>
+</ul></details>
+<p class="muted">Référence : TAIYO TD-L1550A Instruction Manual, édition 1, février 2009. Les séquences ci-dessus sont transcrites de la notice ; les restrictions « équipage / technicien » sont des consignes de sécurité de cette application.</p>
+</section>
+<section class="card">
 <h2>À propos de cette version</h2>
-<p>Version initiale d'aide à l'équipage. Les contrôles se limitent aux observations et manipulations normales décrites dans les notices. Les seuils, codes d'erreur et procédures de maintenance internes ne sont pas inventés. Les résultats dépendent de la configuration réelle, de l'installation et de la version logicielle.</p>
+<p>Version enrichie avec une rubrique de référence TAIYO fondée sur la notice complète. Les résultats du diagnostic restent des pistes et ne constituent pas une preuve de panne ni une validation de l'équipement.</p>
 <p class="muted">Le rapport est généré par la fonction d'impression du navigateur : choisir « Enregistrer au format PDF ». Aucun service en ligne n'est appelé par cette application.</p>
 </section>
 </main>
