@@ -1,12 +1,12 @@
 {
-  "name": "Diagnostic goniomètres de bord",
-  "short_name": "Diag. goniomètres",
+  "name": "DIAGONIO — Diagnostic maritime",
+  "short_name": "DIAGONIO",
   "lang": "fr-FR",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f3f6f8",
-  "theme_color": "#12314a",
+  "background_color": "#f3f7fa",
+  "theme_color": "#102d46",
   "description": "Diagnostic guidé hors connexion RHOTHETA RT-300 et TAIYO TD-L1550A.",
   "icons": [
     {

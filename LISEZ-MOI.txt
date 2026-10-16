@@ -1,3 +1,9 @@
+DIAGONIO — version 4, refonte visuelle (édition esthétique)
+
+Cette édition conserve les fonctions et le format de données de DIAGONIO v4 ; elle améliore principalement l'interface : identité bleu marine/orange, fond clair, champs et boutons plus confortables sur téléphone, cartes mieux hiérarchisées et nouvelle icône. Le fonctionnement hors ligne reste assuré par le service worker.
+
+Les clés de stockage local des appareils et de l'historique n'ont pas été modifiées. Si vous mettez à jour une installation existante sur la même adresse web et dans le même navigateur, les données locales doivent donc rester présentes. Par prudence, exportez tout de même une sauvegarde JSON complète avant de remplacer les fichiers.
+
 APPLICATION DE DIAGNOSTIC — RHOTHETA RT-300 / TAIYO TD-L1550A
 Version initiale, française, destinée à l'équipage.
 
