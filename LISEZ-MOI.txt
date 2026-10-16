@@ -1,0 +1,43 @@
+APPLICATION DE DIAGNOSTIC — RHOTHETA RT-300 / TAIYO TD-L1550A
+Version initiale, française, destinée à l'équipage.
+
+CONTENU
+- index.html : application autonome, formulaires, arbre de diagnostic, historique local, impression PDF.
+- manifest.json : métadonnées d'installation PWA.
+- sw.js : cache hors connexion.
+- icon.svg, icon-192.png, icon-512.png : icônes.
+
+TEST RAPIDE
+Ouvrir index.html dans un navigateur pour tester les fonctions de diagnostic et d'impression.
+L'historique est enregistré dans le stockage local du navigateur.
+
+INSTALLATION SUR IPHONE / IPAD ET ANDROID
+Pour une véritable installation PWA avec fonctionnement hors connexion, héberger ces fichiers sur un site HTTPS (serveur web de l'organisation, intranet compatible HTTPS ou hébergement statique HTTPS).
+- Android : ouvrir l'URL dans Chrome/Edge puis choisir « Installer l'application » ou « Ajouter à l'écran d'accueil ».
+- iPhone/iPad : ouvrir l'URL dans Safari, toucher Partager, puis « Sur l'écran d'accueil ».
+Ouvrir directement le fichier HTML local permet de tester l'application, mais ne garantit pas l'installation PWA ni la mise en cache hors connexion.
+
+DONNÉES / CONFIDENTIALITÉ
+Les fiches restent dans le navigateur et sur l'appareil. Elles ne sont pas synchronisées. Exporter régulièrement l'historique JSON pour sauvegarde/transfert. L'effacement des données du navigateur peut supprimer l'historique.
+
+PDF
+Le bouton de rapport ouvre la boîte de dialogue d'impression du navigateur. Choisir « Enregistrer au format PDF ».
+
+LIMITES IMPORTANTES
+Les pistes sont heuristiques, non validées par le constructeur, et ne prouvent pas une panne. Les contrôles sont volontairement limités à l'équipage et aux observations non invasives. Ne pas ouvrir l'appareil, ne pas accéder à une antenne en hauteur, ne pas intervenir sur des câbles sous tension, et ne jamais émettre sur une fréquence de détresse pour tester. Suivre les procédures du navire et les notices constructeur. Ce logiciel ne remplace pas l'équipement opérationnel, les procédures SAR ou un technicien qualifié.
+
+VALIDATION REQUISE AVANT USAGE OPÉRATIONNEL
+Faire relire les libellés et l'arbre de diagnostic par le responsable électronique/maintenance du navire et comparer chaque procédure avec la version exacte des notices à bord.
+
+
+MISE À JOUR v2 — 15/10/2026
+- Ajout d’une notice de référence détaillée pour le TAIYO TD-L1550A : modes, canaux, volume/squelch, mémoires, scan, installation et limites de maintenance.
+- La rubrique est consultable hors connexion depuis la carte « Notice de référence — TAIYO TD-L1550A ».
+- Le cache du service worker a été incrémenté pour demander le chargement de cette version.
+- Les procédures de maintenance interne restent réservées à une personne qualifiée.
+
+
+MISE À JOUR v3 — 16/10/2026
+- Ajout d’une notice de référence RHOTHETA RT-300 : codes erreur/avertissement NMEA, données de diagnostic, paramètres série et points critiques du plan de connexion DCU.
+- Le plan de connexion est un schéma technique : les brochages, tensions et interventions électriques doivent être vérifiés par une personne qualifiée sur la documentation correspondant à la version installée.
+- Le cache du service worker a été incrémenté pour demander le chargement de cette version.

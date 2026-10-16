@@ -45,7 +45,7 @@ footer{max-width:900px;margin:auto;padding:0 16px 24px;color:var(--muted);font-s
 <div><label for="symptom">Symptôme principal</label><select id="symptom"></select></div>
 </div>
 <label for="when">Contexte / circonstances d'apparition</label><textarea id="when" placeholder="Ex. après démarrage moteur, après pluie, depuis une intervention…"></textarea>
-<label for="display">Message ou indication affichée (facultatif)</label><input id="display" placeholder="Ex. tirets, LAST, valeur instable…">
+<label for="display">Message ou indication affichée (facultatif)</label><input id="display" placeholder="Ex. LAST, code affiché, relèvement instable…">
 <label for="signal">Un signal connu a-t-il été testé ?</label><select id="signal"><option value="unknown">Pas encore / inconnu</option><option value="yes">Oui, signal reçu</option><option value="no">Oui, aucun signal reçu</option></select>
 <div class="notice dangerbox" style="margin-top:14px"><strong>Limites de sécurité</strong><br>Ne pas ouvrir le boîtier, intervenir sur l'antenne en hauteur, débrancher un câble sous tension, émettre sur une fréquence de détresse, ni effectuer de mesure si vous n'êtes pas formé. Ne jamais utiliser ce diagnostic comme unique moyen de navigation ou de recherche et sauvetage. En cas de doute, maintenir les procédures opérationnelles du bord et signaler l'équipement indisponible.</div>
 <div class="actions no-print"><button id="diagnose">Afficher les contrôles guidés</button><button class="secondary" id="newcase">Nouvelle fiche</button></div>
@@ -78,6 +78,52 @@ footer{max-width:900px;margin:auto;padding:0 16px 24px;color:var(--muted);font-s
 <input class="hidden" type="file" id="importFile" accept="application/json">
 <div class="actions no-print"><button class="secondary" id="importBtn">Importer un historique JSON</button></div>
 </section>
+<section class="card">
+<h2>Notice de référence — RHOTHETA RT-300</h2>
+<p>Rubrique ajoutée à partir du plan de connexion DCU (révision 1.01, 2006) et de la documentation « NMEA Serial Communication &amp; Remote Control » (révision 1.14, 2013). Les variantes et câblages réellement installés peuvent différer : confirmer la version du matériel et le schéma applicable avant toute intervention.</p>
+<details><summary><strong>1. Codes d’erreur et avertissements (protocole NMEA)</strong></summary>
+<p>Ces codes proviennent du champ DFSTD de l’interface série NMEA. Ils peuvent être lus par un système externe compatible ; ils ne sont pas nécessairement affichés tels quels à l’écran de l’équipement. La documentation renvoie au manuel principal pour l’interprétation détaillée.</p>
+<ul>
+<li><strong>Erreurs :</strong> 1 = tension d’alimentation de l’unité d’affichage trop basse ; 2 = tension du récepteur/antenne trop basse ; 3 = antenne non connectée ; 4 = données incorrectes venant de l’antenne ; 5 = données incorrectes venant de l’afficheur ; 6 = erreur PLL-LOCK ; 7 = erreur PLL-synthétiseur ; 8 = réservé/non utilisé dans cette version ; 9 = erreur d’offset positif ; 10 = erreur d’offset négatif.</li>
+<li><strong>Avertissements :</strong> 1 = tension afficheur faible ; 2 = tension récepteur/antenne faible ; 3 = données de cap non disponibles alors qu’un relèvement absolu est sélectionné ; 4 = absence de compensation.</li>
+<li>La documentation précise que seul le code d’erreur et le code d’avertissement de priorité la plus élevée sont transmis dans ces champs.</li>
+<li><strong>Conduite à tenir :</strong> noter le code exact, le contexte et le comportement observé. Vérifier uniquement les points externes accessibles sans danger. Pour les codes d’antenne, de données, PLL ou d’offset persistants, arrêter les essais et transmettre à la maintenance qualifiée.</li>
+</ul></details>
+<details><summary><strong>2. Lire les données de diagnostic disponibles</strong></summary>
+<ul>
+<li>La phrase propriétaire <strong>DFSTD</strong> peut transmettre le code erreur, le code avertissement, les modes actifs, la fréquence reçue, le seuil de squelch, le niveau de signal, le relèvement relatif, les relèvements absolus vrai/magnétique et les valeurs de relèvement relatif « live » non moyennées.</li>
+<li>Dans les champs de niveau de signal et de squelch, les valeurs sont exprimées en pourcentage (0 à 100). Un champ de relèvement vide peut indiquer qu’aucun relèvement n’est présent ; cela ne suffit pas, à lui seul, à identifier la cause.</li>
+<li>Les valeurs RELATIVES sont référencées à l’axe de proue. Les relèvements absolus dépendent d’une référence de cap disponible et correctement configurée.</li>
+<li>La phrase <strong>IVOLT</strong> peut rapporter les tensions internes de la DCU (unité d’affichage) et du REC (récepteur), si l’équipement et l’interface le permettent.</li>
+<li>Les relèvements absolus transmis par le RT-300 ne sont pas recommandés par le constructeur pour être repris directement par une carte électronique : la documentation recommande de recalculer le relèvement vrai dans le système cartographique à partir du relèvement relatif, afin de limiter les incohérences en cas de défaut de compas ou de configuration.</li>
+</ul></details>
+<details><summary><strong>3. Repères de communication NMEA (maintenance/intégration)</strong></summary>
+<ul>
+<li>La documentation décrit une communication série compatible NMEA 0183 version 3.01 lorsque l’interface NMEA est sélectionnée : 8 bits de données, sans parité, 1 bit d’arrêt.</li>
+<li>Débits disponibles multiples ; le constructeur recommande <strong>4 800 bit/s</strong> pour NMEA 0183 standard ou <strong>38 400 bit/s</strong> pour NMEA 0183 haute vitesse.</li>
+<li>Le RT-300 peut traiter jusqu’à 10 commandes/requêtes distantes par seconde ; la documentation recommande un délai d’attente de 250 ms pour une réponse.</li>
+<li>Selon le mode de dialogue configuré, l’appareil peut transmettre périodiquement ses données (mode Auto) ou répondre aux requêtes et commandes d’un système externe (mode Request). Le mode Request permet également la télécommande, si la configuration le permet.</li>
+<li>Les phrases propriétaires de commande (notamment réinitialisation, paramètres, relais, tests ou restauration usine) ne sont pas des contrôles équipage. Ne pas envoyer de commandes de test ou de modification sans procédure de maintenance validée.</li>
+</ul></details>
+<details><summary><strong>4. Plan de connexion DCU : points critiques</strong></summary>
+<ul>
+<li>Le plan constructeur indique que les connexions externes autres que l’alimentation et l’antenne sont optionnelles.</li>
+<li>Connexion antenne–DCU : le plan indique une longueur admissible de 1 à 100 m avec câble télécom à paires torsadées 6×2 + blindage, ou de 1 à 50 m avec câble standard 9 conducteurs + blindage. Vérifier le type exact de câble et le schéma correspondant à l’installation avant toute conclusion.</li>
+<li><strong>Le blindage de la liaison antenne–DCU doit être connecté :</strong> le plan avertit que le système ne fonctionne pas sans le blindage raccordé.</li>
+<li>Le plan représente une alimentation DC 12–30 V / 1 A et un convertisseur DC-DC optionnel. Cette indication provient du schéma de connexion ; vérifier la plaque signalétique et la documentation correspondant à la version installée avant toute mesure ou intervention électrique.</li>
+<li>Sortie haut-parleur externe : le plan indique 4–8 Ω, puissance d’entrée maximale ≥ 2 W. Il avertit explicitement de <strong>ne pas relier NF-OUT A ou B à la masse</strong>, sous peine d’endommager la DCU.</li>
+<li>Le plan propose des connexions série RS232, RS422/NMEA et RS485 selon la configuration. Ne pas déduire le brochage à partir de ce résumé : utiliser le plan complet, avec les repères de connecteurs, et confier les contrôles de câblage à un technicien.</li>
+</ul></details>
+<details><summary><strong>5. Contrôles équipage et escalade</strong></summary>
+<ul>
+<li>Relever les indications affichées, la fréquence/canal, le mode REL/MAG/TRU, le niveau de signal, la stabilité du relèvement et les circonstances d’apparition.</li>
+<li>Vérifier le démarrage conformément à la notice, la sélection de bande/canal et le volume/squelch, ainsi que les dommages visibles sur les câbles accessibles sans danger.</li>
+<li>Si le relèvement absolu est indisponible, vérifier auprès de la maintenance que la source de cap/compas est bien présente et que le référentiel choisi correspond à la configuration du bord.</li>
+<li><strong>Réservé à un technicien :</strong> ouvrir la DCU ou le récepteur, contrôler les tensions, vérifier la continuité/isolement, tester le blindage ou les brochages, intervenir sur les connecteurs, modifier la configuration série ou envoyer des commandes NMEA de télécommande.</li>
+</ul></details>
+<p class="muted">Références : RHOTHETA « RT-300 DCU Connection Plan », révision 1.01 ; « RT-300 NMEA Serial Communication &amp; Remote Control », révision 1.14. Cette synthèse ne remplace pas les documents complets du constructeur.</p>
+</section>
+
 <section class="card">
 <h2>Notice de référence — TAIYO TD-L1550A</h2>
 <p>Cette rubrique reprend les informations utiles de la notice constructeur complète (édition de février 2009). Elle est disponible hors connexion. Les réglages installés peuvent dépendre des options configurées à l'usine.</p>
@@ -141,7 +187,7 @@ footer{max-width:900px;margin:auto;padding:0 16px 24px;color:var(--muted);font-s
 </section>
 <section class="card">
 <h2>À propos de cette version</h2>
-<p>Version enrichie avec une rubrique de référence TAIYO fondée sur la notice complète. Les résultats du diagnostic restent des pistes et ne constituent pas une preuve de panne ni une validation de l'équipement.</p>
+<p>Version enrichie avec des rubriques de référence RHOTHETA RT-300 et TAIYO TD-L1550A fondées sur les documentations constructeur. Les résultats du diagnostic restent des pistes et ne constituent pas une preuve de panne ni une validation de l'équipement.</p>
 <p class="muted">Le rapport est généré par la fonction d'impression du navigateur : choisir « Enregistrer au format PDF ». Aucun service en ligne n'est appelé par cette application.</p>
 </section>
 </main>
