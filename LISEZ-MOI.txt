@@ -41,3 +41,13 @@ MISE À JOUR v3 — 16/10/2026
 - Ajout d’une notice de référence RHOTHETA RT-300 : codes erreur/avertissement NMEA, données de diagnostic, paramètres série et points critiques du plan de connexion DCU.
 - Le plan de connexion est un schéma technique : les brochages, tensions et interventions électriques doivent être vérifiés par une personne qualifiée sur la documentation correspondant à la version installée.
 - Le cache du service worker a été incrémenté pour demander le chargement de cette version.
+
+MISE À JOUR v4 — 16/10/2026
+- Ajout d’un carnet de santé par appareil : identifiant unique, modèle, bateau/station, emplacement, numéro de série et statut.
+- Possibilité de rattacher une intervention à une fiche appareil et de voir le nombre d’interventions associées.
+- Ajout d’un niveau de conclusion (hypothèses, cause non identifiée ou cause confirmée avec élément probant).
+- Ajout d’un statut opérationnel explicite avec justification obligatoire et suggestion prudente basée sur les résultats renseignés.
+- Les rapports imprimés masquent le parc, l’historique et les notices afin de rester centrés sur la fiche d’intervention.
+- Export complet JSON des fiches appareils et interventions ; import avec validation, conservation des données existantes et détection des doublons.
+- Le cache hors connexion a été incrémenté vers v4.
+- Le diagnostic reste une aide : le statut final doit respecter les procédures du bord et être validé par le responsable compétent.
