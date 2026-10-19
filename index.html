@@ -46,8 +46,9 @@ button{font:inherit;font-weight:750;min-height:46px;border:1px solid transparent
 </section>
 
 <section class="card hidden" id="guided">
-<h2>2 · Contrôles simples guidés</h2>
-<p class="muted">Cochez les observations. Les causes proposées sont des pistes de dépannage, pas des conclusions certaines.</p>
+<h2>2 · Contrôles guidés</h2>
+<p class="muted">Les résultats servent à orienter le diagnostic. Une hypothèse ne devient une cause confirmée qu’avec une preuve documentée et, si possible, un essai comparable avant/après.</p>
+<div id="matrixIntro"></div>
 <div id="steps"></div>
 <label for="notes">Notes / contrôles effectués</label><textarea id="notes" placeholder="Résultats, valeurs lues, anomalie constatée…"></textarea>
 <div class="actions no-print"><button id="evaluate">Évaluer les pistes possibles</button></div>
@@ -202,7 +203,7 @@ button{font:inherit;font-weight:750;min-height:46px;border:1px solid transparent
 </section>
 <section class="card" id="aboutCard">
 <h2>À propos de cette version</h2>
-<p>Version 4 — gestion du parc, suivi des interventions, conclusion nuancée, statut opérationnel explicite et sauvegarde complète. Version enrichie avec des rubriques de référence RHOTHETA RT-300 et TAIYO TD-L1550A fondées sur les documentations constructeur. Les résultats du diagnostic restent des pistes et ne constituent pas une preuve de panne ni une validation de l'équipement.</p>
+<p>Version 6 — matrices guidées pour aucun affichage, absence de relèvement, relèvement instable/incohérent, mauvaise précision/écart de relèvement et relèvement stable mais faux pour les deux modèles, avec embranchements, critères et distinction hypothèse/anomalie/cause confirmée. Gestion du parc, historique, statut opérationnel et sauvegarde complète conservés. Version enrichie avec des rubriques de référence RHOTHETA RT-300 et TAIYO TD-L1550A fondées sur les documentations constructeur. Les résultats du diagnostic restent des pistes et ne constituent pas une preuve de panne ni une validation de l'équipement.</p>
 <p class="muted">Le rapport est généré par la fonction d'impression du navigateur : choisir « Enregistrer au format PDF ». Aucun service en ligne n'est appelé par cette application.</p>
 </section>
 </main>
@@ -212,18 +213,24 @@ const $=id=>document.getElementById(id);
 const now=new Date(); $('date').value=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
 const symptoms={
  rt:[
+ ['displaynone','Aucun affichage'],
+ ['bearing','Affichage présent mais aucun relèvement'],
+ ['unstable','Relèvement instable ou incohérent'],
+ ['accuracy','Mauvaise précision ou écart de relèvement'],
+ ['stablewrong','Relèvement stable mais faux'],
  ['power','Ne s’allume pas / redémarre'],
- ['bearing','S’allume mais aucun relèvement exploitable'],
- ['wrong','Relèvement instable ou incohérent'],
  ['weak','Signal faible ou absent'],
  ['audio','Aucun son'],
  ['scan','Balayage / sélection canal-fréquence anormal'],
  ['intermittent','Panne intermittente']
  ],
  taiyo:[
+ ['displaynone','Aucun affichage'],
+ ['bearing','Affichage présent mais aucun relèvement'],
+ ['unstable','Relèvement instable ou incohérent'],
+ ['accuracy','Mauvaise précision ou écart de relèvement'],
+ ['stablewrong','Relèvement stable mais faux'],
  ['power','Ne s’allume pas / redémarre'],
- ['bearing','Pas de relèvement en mode DF'],
- ['wrong','Relèvement instable ou incohérent'],
  ['weak','Signal faible ou absent'],
  ['audio','Aucun son'],
  ['scan','Balayage mémoire ou sélection de canal anormal'],
@@ -256,9 +263,85 @@ function getDevices(){try{const d=JSON.parse(localStorage.getItem(DEVICE_KEY)||'
 function setDevices(d){localStorage.setItem(DEVICE_KEY,JSON.stringify(d));renderDevices();fillDeviceSelect()}
 function fillSymptoms(){ $('symptom').innerHTML=symptoms[$('model').value].map(s=>`<option value="${s[0]}">${s[1]}</option>`).join('');}
 $('model').addEventListener('change',()=>{fillSymptoms();$('deviceSelect').value='';});fillSymptoms();
-function getChecks(){return checkDefs[$('model').value];}
+const stableWrongDefs={
+ rt:[
+ ['ref','A — Le relèvement comparé utilise-t-il le même référentiel (REL, MAG ou TRU) que la référence connue ?','FAIT DOCUMENTÉ : REL est relatif à l’axe de l’antenne ; MAG/TRU nécessitent une référence de compas appropriée. Si REL est cohérent mais MAG/TRU ne l’est pas, vérifier source/configuration du compas. Si le référentiel est inconnu, la comparaison n’est pas valide.'],
+ ['offset','B — L’écart a-t-il été relevé sur plusieurs mesures comparables et est-il constant ou dépendant de la direction ?','DÉDUCTION : un écart constant est compatible avec un décalage de zéro/orientation ; un écart variant selon la direction peut orienter vers installation ou correction. Noter les valeurs, directions et conditions ; ce n’est pas une preuve de cause.'],
+ ['mount','C — Le type de montage (NORM/INVERS) correspond-il à la configuration physique réelle ?','Contrôle de configuration RT-300. Relever la valeur actuelle avant toute modification. Si incohérent, faire vérifier par une personne autorisée, puis refaire l’essai.'],
+ ['correction','D — L’OFFSET et les paramètres de compensation de cap ont-ils été relevés et comparés à la configuration attendue ?','Ne pas modifier l’OFFSET pour faire correspondre une seule mesure. Vérifier la source de cap si MAG/TRU ou compensation de cap est utilisée ; comparer les résultats avant/après toute correction autorisée.'],
+ ['installation','E — L’antenne, son orientation, sa fixation, le câble et les connecteurs présentent-ils une anomalie observable ?','Inspection sans démontage ni accès dangereux. Une anomalie observée n’établit pas à elle seule la causalité. Si câble/connexion en cause, transmettre à la maintenance qualifiée.'],
+ ['environment','F — L’écart a-t-il été comparé dans des conditions contrôlées et avec l’environnement électromagnétique habituel documenté ?','Si l’écart varie avec l’environnement, une influence externe est possible, pas confirmée. Ne pas désactiver d’équipement de sécurité ; toute comparaison doit rester autorisée.'],
+ ['precision','G — Un essai de précision conforme à la procédure applicable a-t-il été réalisé et consigné ?','La spécification RT-300 ≤ 5° RMS n’est pas une tolérance universelle de terrain. Si l’écart persiste après contrôles autorisés, classer « précision non validée » et transmettre au spécialiste.']
+ ],
+ taiyo:[
+ ['ref','A — La référence angulaire et la convention de mesure sont-elles identiques pour la valeur attendue et la valeur affichée ?','Si le référentiel est inconnu ou différent, la comparaison n’est pas valide. Clarifier la méthode de référence avant d’interpréter l’écart.'],
+ ['offset','B — L’écart a-t-il été relevé sur plusieurs mesures comparables et est-il constant ou dépendant de la direction ?','DÉDUCTION : un écart constant peut être compatible avec un problème d’alignement ; un écart dépendant de la direction peut orienter vers installation/courbe de correction. Noter les mesures ; ne pas conclure à la cause sur ce seul indice.'],
+ ['bow','C — Le repère BOW de l’antenne EA-351A est-il orienté vers la proue et l’axe NS parallèle à l’axe longitudinal du navire ?','CONTRÔLE DOCUMENTÉ D’INSTALLATION. Si non conforme, enregistrer l’anomalie et faire vérifier l’alignement selon la procédure autorisée. Refaire l’essai après correction.'],
+ ['antenna','D — Les éléments d’antenne, fixations, connecteurs BNC (repère rouge) et cheminement du câble semblent-ils conformes ?','Contrôle visuel uniquement si accessible en sécurité. L’absence d’anomalie visuelle ne prouve pas la continuité ni l’absence de défaut électrique. Ne pas grimper ni démonter.'],
+ ['correction','E — La courbe de correction et les résultats du précédent contrôle de précision sont-ils disponibles et applicables à cette installation ?','Si disponibles, comparer au protocole et à l’installation actuels. Ne pas appliquer une correction issue d’un autre appareil ou d’une autre configuration sans validation technique.'],
+ ['environment','F — L’écart a-t-il été comparé dans des conditions contrôlées et avec l’environnement électromagnétique habituel documenté ?','La notice demande une vérification des interférences avec les équipements électroniques. Une corrélation observée reste une piste à confirmer ; ne désactivez pas d’équipement de sécurité.'],
+ ['precision','G — Un essai de précision selon la procédure de maintenance applicable a-t-il été consigné ?','Les critères cités dans la notice dépendent du test (par exemple certains canaux VHF ±3° et AM EP 121,5 MHz ±5°). Ne pas les généraliser. Si la procédure manque ou le test échoue, « précision non validée » et transmission technique.']
+ ]
+};
+const symptomMatrices={
+ displaynone:{rt:[
+ ['power','A — L’alimentation externe et les protections accessibles sont-elles conformes à la procédure du bord ?','Contrôle de premier niveau. Ne pas ouvrir le poste ; si une protection déclenche à nouveau, arrêter et transmettre.'],
+ ['startup','B — La séquence d’allumage correspond-elle à la notice (appui prolongé) et l’affichage reste-t-il absent ?','Une commande mal utilisée peut imiter une panne. Si la séquence est correcte et l’affichage reste absent, noter le comportement.'],
+ ['display','C — L’écran est-il totalement éteint ou présente-t-il un rétroéclairage, un message ou un clignotement ?','Décrire précisément le signe observable ; ne pas conclure à un défaut d’écran ou d’alimentation sans contrôle.'],
+ ['connections','D — Y a-t-il un dommage visible, une humidité ou un connecteur accessible manifestement desserré ?','Inspection externe uniquement et sans danger. Toute humidité interne, échauffement ou dommage impose l’arrêt et la maintenance.'],
+ ['service','E — Le défaut persiste-t-il après les contrôles externes autorisés ?','Si oui, cause non localisée : maintenance qualifiée, sans ouverture ni intervention interne.']],
+ taiyo:[
+ ['power','A — L’alimentation est-elle vérifiée selon la procédure du bord et la plage nominale de la notice (10–16 V DC) ?','Ne mesurer que si vous êtes habilité. Ne pas remplacer un fusible par un calibre différent ni insister si la protection déclenche.'],
+ ['startup','B — Le poste est-il correctement commandé et l’affichage totalement absent ?','Noter toute réaction, même brève, au démarrage.'],
+ ['display','C — L’écran est-il totalement éteint ou présente-t-il un rétroéclairage, un message ou un clignotement ?','Cette observation oriente le contrôle mais ne localise pas à elle seule la panne.'],
+ ['connections','D — Câbles et connecteurs accessibles présentent-ils un dommage visible ou des signes d’humidité ?','Inspection externe sans démontage ni accès dangereux.'],
+ ['service','E — Le défaut persiste-t-il après les contrôles externes autorisés ?','Transmettre à la maintenance qualifiée ; ne pas ouvrir l’appareil.']]},
+ bearing:{rt:[
+ ['mode','A — La bande, le canal/la fréquence et le mode permettent-ils un relèvement DF ?','Vérifier la sélection par rapport au signal de test connu.'],
+ ['signal','B — Le poste indique-t-il une réception du signal connu ?','Si aucune réception n’est détectée, basculer vers le diagnostic de réception/signal plutôt que conclure à une panne de calcul du relèvement.'],
+ ['squelch','C — Le squelch a-t-il été vérifié sans masquer le signal ?','Un seuil trop élevé peut masquer la réception audible ; ce contrôle ne suffit pas à expliquer toute absence de relèvement.'],
+ ['reference','D — Le mode et le référentiel de relèvement sont-ils appropriés (REL/MAG/TRU) ?','REL se rapporte à l’axe de l’antenne ; MAG/TRU requièrent une référence de compas appropriée.'],
+ ['antenna','E — Antenne, câble et connectique accessibles présentent-ils une anomalie visible ?','Une anomalie est une piste à documenter, pas une cause confirmée.'],
+ ['service','F — Le relèvement reste-t-il absent avec signal connu, réglages validés et conditions stables ?','Cause non identifiée ; transmettre au spécialiste, sans ouverture ni réglage interne.']],
+ taiyo:[
+ ['mode','A — Le poste est-il en mode DF plutôt qu’en mode RCV ?','La notice distingue le mode de réception RCV du mode de relèvement DF.'],
+ ['channel','B — Le canal/la fréquence sélectionné correspond-il au signal connu ?','Un canal inadapté peut expliquer l’absence de résultat.'],
+ ['strength','C — L’indicateur de signal réagit-il à la présence du signal connu ?','S’il ne réagit pas, contrôler la réception et l’installation avant d’incriminer le calcul du relèvement.'],
+ ['squelch','D — Le squelch est-il réglé conformément à la notice pour ne pas masquer le signal ?','Vérifier sans modifier plusieurs réglages simultanément.'],
+ ['antenna','E — Antenne EA-351A, câble et connecteurs accessibles présentent-ils une anomalie visible ?','L’absence de défaut visible n’exclut pas une panne électrique.'],
+ ['service','F — Le relèvement reste-t-il absent avec signal connu, mode DF et canal validés ?','Cause non identifiée ; transmettre au spécialiste.']]},
+ unstable:{rt:[
+ ['signal','A — Le relèvement varie-t-il en même temps que l’indication de réception ou le signal reçu ?','Une corrélation peut orienter vers réception, installation ou environnement, sans confirmer la cause.'],
+ ['live','B — Le comportement a-t-il été comparé en mode LIVE et dans les mêmes conditions ?','LIVE présente les valeurs de relèvement non moyennées. Consigner les observations ; ne pas confondre lissage d’affichage et correction de panne.'],
+ ['reference','C — Le référentiel REL/MAG/TRU et la source de cap sont-ils adaptés ?','Si seule la référence compas semble incohérente, contrôler source/configuration ; si REL varie également, poursuivre.'],
+ ['settings','D — Les réglages pertinents ont-ils été relevés sans modifier plusieurs paramètres à la fois ?','Noter les valeurs initiales. Le réglage AVERAGE influe sur l’affichage, mais n’établit pas la cause d’une instabilité.'],
+ ['installation','E — Antenne, câble, connectique et environnement sont-ils conformes et sans anomalie visible ?','Vérifier selon la notice et sans désactiver d’équipement de sécurité.'],
+ ['repeat','F — Le phénomène est-il reproductible avec signal connu et conditions stables ?','Si oui et persistant après contrôles autorisés, transmettre avec les mesures et conditions.']],
+ taiyo:[
+ ['signal','A — L’indication de signal reste-t-elle stable lorsque le relèvement varie ?','Signal et relèvement variant ensemble : piste réception/environnement ; signal stable et relèvement variable : poursuivre sans conclure.'],
+ ['mode','B — Mode DF, canal et squelch sont-ils correctement réglés ?','Vérifier selon la notice et changer un seul paramètre à la fois.'],
+ ['installation','C — L’orientation BOW/NS, les fixations, les BNC et le cheminement du câble sont-ils conformes ?','Contrôles d’installation documentés. Anomalie constatée ≠ causalité confirmée.'],
+ ['environment','D — Le phénomène est-il corrélé à l’utilisation d’autres équipements électroniques ?','La notice prévoit un contrôle des interférences. Ne désactivez pas d’équipement de sécurité.'],
+ ['repeat','E — Le phénomène persiste-t-il avec signal connu et conditions stables ?','Consigner les répétitions et transmettre au spécialiste si les contrôles autorisés ne résolvent pas le problème.']]},
+ accuracy:{rt:[
+ ['reference','A — Valeur affichée et valeur attendue utilisent-elles le même référentiel et la même convention ?','Comparer uniquement des valeurs dans le même référentiel. REL, MAG et TRU ne sont pas interchangeables.'],
+ ['pattern','B — L’écart est-il constant, dépendant de la direction ou variable entre répétitions ?','Cette classification oriente la suite, mais ne prouve pas la cause. Noter plusieurs mesures.'],
+ ['mount','C — Montage NORM/INVERS, OFFSET et source de cap ont-ils été relevés et vérifiés ?','Ne pas modifier l’offset pour faire correspondre une seule mesure ; documenter les valeurs initiales.'],
+ ['installation','D — L’installation et le câblage sont-ils conformes à la documentation ?','Une anomalie visible peut contribuer à l’écart ; causalité à confirmer par nouvel essai.'],
+ ['precision','E — Un essai de précision adapté à la procédure applicable a-t-il été effectué ?','La spécification ≤5° RMS n’est pas une tolérance universelle de terrain. Si doute ou non-conformité, transmettre.']],
+ taiyo:[
+ ['reference','A — La référence angulaire et la convention de mesure sont-elles identiques ?','Si la référence n’est pas validée, la comparaison n’est pas interprétable.'],
+ ['pattern','B — L’écart est-il constant, dépendant de la direction ou variable entre répétitions ?','Déduction de diagnostic à vérifier par plusieurs mesures comparables.'],
+ ['bow','C — BOW est-il orienté vers la proue et NS parallèle à l’axe longitudinal du navire ?','Contrôle d’installation documenté. Consigner toute anomalie avant correction.'],
+ ['correction','D — La courbe de correction disponible correspond-elle à cet appareil et à cette installation ?','Ne pas appliquer la courbe d’un autre appareil ou d’une configuration différente.'],
+ ['installation','E — Les éléments d’antenne, fixations, connecteurs et câble sont-ils conformes ?','L’inspection visuelle ne prouve pas l’intégrité électrique.'],
+ ['precision','F — Un essai conforme à la procédure de maintenance applicable a-t-il été consigné ?','Les critères ±3°/±5° cités dans la notice dépendent du test et ne doivent pas être généralisés.']]}
+};
+function getChecks(){const id=$('symptom').value, model=$('model').value;if(id==='stablewrong')return stableWrongDefs[model];if(symptomMatrices[id])return symptomMatrices[id][model];return checkDefs[model];}
 function diagnose(){
  const model=$('model').value; activeChecks=[];
+ const symptomId=$('symptom').value; const isWrong=['stablewrong','accuracy'].includes(symptomId); const guidedMatrix=['displaynone','bearing','unstable','accuracy','stablewrong'].includes(symptomId);
+ $('matrixIntro').innerHTML=isWrong?`<div class="notice"><strong>Matrice : ${{stablewrong:'relèvement stable mais faux',accuracy:'mauvaise précision ou écart de relèvement'}[symptomId]}</strong><p>Signal connu et conditions stables déclarés. Commencer par valider le référentiel, puis caractériser l’écart, vérifier les réglages propres au modèle, l’installation et enfin la précision.</p><div class="grid"><div><label for="referenceValidity">Référentiel validé ?</label><select id="referenceValidity"><option value="unknown">À confirmer</option><option value="yes">Oui, même référentiel</option><option value="no">Non / différent</option></select></div><div><label for="anglePattern">Profil de l’écart constaté</label><select id="anglePattern"><option value="unknown">Pas encore caractérisé</option><option value="constant">Écart constant sur plusieurs mesures</option><option value="azimuth">Écart variable selon la direction</option><option value="repeat">Écart variable entre répétitions comparables</option></select></div></div><p><strong>Issue de l’étape :</strong> si le référentiel est différent/inconnu, corriger la comparaison avant de poursuivre. Si une anomalie est observée, la noter comme telle sans affirmer qu’elle est la cause. Si aucun contrôle autorisé n’explique l’écart, conclure « cause non identifiée / précision non validée » et transmettre.</p><p class="muted">Les indications « fait documenté » correspondent aux notices ; les liens entre symptôme et cause sont des déductions à confirmer.</p></div>`:guidedMatrix?`<div class="notice"><strong>Matrice guidée : ${{displaynone:'aucun affichage',bearing:'affichage présent mais aucun relèvement',unstable:'relèvement instable ou incohérent',accuracy:'mauvaise précision ou écart de relèvement'}[symptomId]||''}</strong><p>Suivre les contrôles dans l’ordre. Les contrôles documentés sont distingués des déductions ; une anomalie observée ne confirme pas à elle seule la cause.</p><p>À chaque étape : consigner le résultat, ne modifier qu’un paramètre à la fois, ne pas ouvrir l’appareil et arrêter en cas de danger ou d’intervention non autorisée. Si la cause reste indéterminée, transmettre au spécialiste.</p></div>`:'';
  $('steps').innerHTML=getChecks().map((c,i)=>`<div class="step"><label><input style="width:auto;margin-right:8px" type="checkbox" id="c${i}" value="${c[0]}"> ${c[1]}</label><p class="muted">${c[2]}</p><label for="r${i}">Résultat</label><select id="r${i}"><option value="unknown">Non vérifié / inconnu</option><option value="ok">Contrôle satisfaisant</option><option value="bad">Anomalie constatée</option><option value="na">Non applicable</option></select></div>`).join('');
  $('guided').classList.remove('hidden');$('outcome').classList.add('hidden');$('guided').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -271,26 +354,37 @@ function evaluate(){
  const vals=getChecks().map((c,i)=>({id:c[0],question:c[1],advice:c[2],result:$('r'+i).value,checked:$('c'+i).checked}));
  const anomalies=vals.filter(v=>v.result==='bad'); const unchecked=vals.filter(v=>v.result==='unknown');let causes=[];
  const add=(rank,title,why,action)=>causes.push({rank,title,why,action});
- if(symptom==='power'){add(1,'Alimentation ou protection électrique','Piste prioritaire si aucun affichage, redémarrages ou extinction.','Vérifier uniquement les indications et protections accessibles selon les procédures du bord ; si une protection déclenche à nouveau, arrêter.');add(2,'Commande ou défaut interne','À envisager si l’alimentation externe semble normale et la commande est utilisée correctement.','Ne pas ouvrir le boîtier ; transmettre à la maintenance.');}
- else if(symptom==='bearing'||symptom==='wrong'){add(1,'Mode, canal/fréquence ou référentiel de relèvement','Un mauvais mode, réglage ou référentiel peut expliquer l’absence ou la mauvaise interprétation du relèvement.','Confirmer le mode et le signal de test ; pour RT-300, vérifier la signification REL/MAG/TRU.');add(2,'Antenne, câble ou connectique','Piste plus importante si la réception est faible, intermittente ou si une anomalie visible existe.','Inspection visuelle uniquement ; demander une vérification technique si le doute persiste.');add(3,'Réception ou traitement interne','À envisager si les réglages sont confirmés et le défaut persiste avec un signal connu.','Noter les observations et transmettre au technicien.');}
+ if(symptom==='displaynone'){add(1,'Alimentation externe ou protection','Priorité si aucun affichage ; cela reste une piste tant que le contrôle n’est pas probant.','Vérifier uniquement selon la procédure du bord ; arrêter si une protection déclenche de nouveau.');add(2,'Commande de démarrage ou défaut interne','À envisager si l’alimentation externe et la séquence de démarrage sont validées.','Ne pas ouvrir l’appareil ; transmettre à la maintenance qualifiée.');}
+ else if(symptom==='power'){add(1,'Alimentation ou protection électrique','Piste prioritaire si aucun affichage, redémarrages ou extinction.','Vérifier uniquement les indications et protections accessibles selon les procédures du bord ; si une protection déclenche à nouveau, arrêter.');add(2,'Commande ou défaut interne','À envisager si l’alimentation externe semble normale et la commande est utilisée correctement.','Ne pas ouvrir le boîtier ; transmettre à la maintenance.');}
+ else if(symptom==='stablewrong' || symptom==='accuracy'){
+ add(1,'Référentiel angulaire non validé','Avant d’interpréter un relèvement faux, confirmer que la valeur affichée et la référence utilisent le même référentiel.','Si référentiel différent/inconnu, corriger la comparaison et refaire le test ; ne pas conclure à une panne.');
+ add(2,'Écart systématique à caractériser','Un écart constant peut être compatible avec un décalage d’orientation/zéro ; un écart dépendant de la direction peut orienter vers installation ou correction.','Consigner plusieurs valeurs, directions et conditions. Cette relation reste une hypothèse tant qu’elle n’est pas vérifiée.');
+ add(3,model==='rt'?'Configuration RT-300 : montage, OFFSET et référence de cap':'Installation TAIYO : alignement EA-351A et courbe de correction','Contrôler uniquement les paramètres propres au modèle et les éléments documentés dans la notice.','Relever les valeurs initiales. Ne modifier aucun réglage pour faire correspondre une seule mesure ; toute correction doit être autorisée et suivie d’un nouvel essai.');
+ add(4,'Installation, câble, connectique ou environnement','Une anomalie visible ou une corrélation avec l’environnement peut orienter le diagnostic sans prouver la cause.','Inspection sans démontage ni danger. Ne pas désactiver d’équipement de sécurité. Escalader pour les contrôles électriques.');
+ add(5,'Précision non validée / défaut non localisé','Si l’écart persiste après les contrôles autorisés, la cause reste indéterminée.','Appliquer le protocole de précision propre au modèle. Si non conforme, procédure absente ou doute persistant : transmettre au spécialiste.');
+ }
+ else if(symptom==='unstable'){add(1,'Caractériser la variabilité','Comparer indication de signal, mode, canal et répétitions dans des conditions contrôlées. Une corrélation est une piste, pas une preuve.','Consigner les conditions et vérifier un seul réglage à la fois.');add(2,model==='rt'?'Référence de cap, mode LIVE et réglages d’affichage':'Mode DF, squelch, installation et environnement','Des réglages ou facteurs d’installation peuvent contribuer au symptôme.','Vérifier selon la notice ; ne pas désactiver d’équipement de sécurité.');add(3,'Défaut non localisé','Si le phénomène persiste avec signal connu et conditions stables, la cause n’est pas établie.','Transmettre les mesures et observations au spécialiste.');}
+ else if(symptom==='bearing'){add(1,'Mode, canal/fréquence ou référentiel de relèvement','Un mauvais mode, réglage ou référentiel peut expliquer l’absence ou la mauvaise interprétation du relèvement.','Confirmer le mode et le signal de test ; pour RT-300, vérifier la signification REL/MAG/TRU.');add(2,'Antenne, câble ou connectique','Piste plus importante si la réception est faible, intermittente ou si une anomalie visible existe.','Inspection visuelle uniquement ; demander une vérification technique si le doute persiste.');add(3,'Réception ou traitement interne','À envisager si les réglages sont confirmés et le défaut persiste avec un signal connu.','Noter les observations et transmettre au technicien.');}
  else if(symptom==='weak'){add(1,'Signal de test, canal/fréquence ou squelch','À vérifier en premier car ces points peuvent imiter une panne de réception.','Reprendre un test autorisé avec signal connu et vérifier le réglage de squelch.');add(2,'Antenne, câble ou connecteurs','Possible si l’indicateur de signal reste faible ou si le défaut est intermittent.','Inspection visuelle sans démontage ni accès dangereux.');add(3,'Défaut de réception interne','À envisager si le défaut est reproductible sur un signal connu.','Consigner les résultats ; maintenance qualifiée.');}
  else if(symptom==='audio'){add(1,'Volume, squelch ou mode de réception','Réglages à vérifier avant de conclure à un défaut matériel.','Vérifier volume, squelch et réception d’un signal connu.');add(2,'Haut-parleur, sortie audio ou défaut interne','Possible si l’indication de réception réagit mais qu’aucun son n’est entendu.','Ne pas démonter ; transmettre à la maintenance.');}
  else if(symptom==='scan'){add(1,'Configuration des canaux/fréquences ou mémoires','Une programmation ou une sélection incorrecte peut empêcher le comportement attendu.','Revoir les étapes de sélection et, pour le TAIYO, les adresses/groupes mémoire.');add(2,'Réglage de commande ou défaut intermittent','À envisager si les commandes ne répondent pas normalement.','Noter la séquence exacte et demander une vérification si cela persiste.');}
  else {add(1,'Alimentation, connectique ou commande intermittente','À envisager si le défaut varie avec le temps, les vibrations ou après démarrage.','Noter les circonstances ; ne pas manipuler les câbles sous tension.');add(2,'Humidité, antenne ou défaut interne','Piste possible après intempéries ou si l’anomalie se répète.','Arrêter en présence d’humidité interne, d’échauffement ou de dommage visible ; faire vérifier.');}
  if(anomalies.length)causes.unshift({rank:0,title:'Anomalie constatée lors des contrôles',why:anomalies.map(a=>a.question).join(' '),action:'Traiter cette anomalie en priorité selon la procédure du bord ; si elle concerne câble, alimentation ou comportement anormal, ne pas poursuivre au-delà des contrôles simples.'});
  if(signal==='no')causes.unshift({rank:0,title:'Aucun signal connu reçu lors du test',why:'Le test ne permet pas encore de conclure à une panne du goniomètre : vérifier d’abord que le signal, le canal/fréquence et les conditions du test sont valides.',action:'Répéter seulement avec un signal connu et autorisé, selon les procédures du bord.'});
+ const matrixFindings=['stablewrong','accuracy'].includes(symptom)?{referenceValidity:$('referenceValidity')?.value||'unknown',anglePattern:$('anglePattern')?.value||'unknown'}:null;
  const checkedGood=vals.filter(v=>v.result==='ok').length;
  // Suggestion de statut prudente : la décision finale reste à l’utilisateur/responsable du bord.
  if(anomalies.length){$('operationalStatus').value='unavailable';$('statusReason').value='Statut suggéré automatiquement : au moins une anomalie a été constatée. Préciser la décision du responsable du bord.';}
  else if(unchecked.length || signal!=='yes'){ $('operationalStatus').value='incomplete';$('statusReason').value='Statut suggéré automatiquement : certains contrôles ou la validation par signal connu restent incomplets.';}
  else { $('operationalStatus').value='reserve';$('statusReason').value='Tous les contrôles renseignés sont satisfaisants, mais la validation finale doit être confirmée par le responsable opérationnel du bord.';}
- const summary=`Appareil : ${modelName()}. Symptôme : ${symptoms[model].find(s=>s[0]===symptom)[1]}. ${checkedGood} contrôle(s) satisfaisant(s), ${anomalies.length} anomalie(s), ${unchecked.length} contrôle(s) non vérifié(s). Les causes proposées restent des hypothèses tant qu’elles ne sont pas confirmées par un contrôle probant.`;
+ const patternText=matrixFindings?` Référentiel : ${{unknown:'à confirmer',yes:'validé',no:'différent ou non validé'}[matrixFindings.referenceValidity]}. Profil de l’écart : ${{unknown:'non caractérisé',constant:'constant sur plusieurs mesures',azimuth:'variable selon la direction',repeat:'variable entre répétitions comparables'}[matrixFindings.anglePattern]}.`:'';
+ const summary=`Appareil : ${modelName()}. Symptôme : ${symptoms[model].find(s=>s[0]===symptom)[1]}.${patternText} ${checkedGood} contrôle(s) satisfaisant(s), ${anomalies.length} anomalie(s), ${unchecked.length} contrôle(s) non vérifié(s). Les causes proposées restent des hypothèses tant qu’elles ne sont pas confirmées par un contrôle probant.`;
  $('summary').textContent=summary;$('causes').innerHTML=causes.map((c,i)=>`<div class="result"><span class="chip">${c.rank===0?'À traiter / vérifier':('Hypothèse '+(i+1))}</span><h3>${c.title}</h3><p><strong>Pourquoi :</strong> ${c.why}</p><p><strong>Suite proposée :</strong> ${c.action}</p></div>`).join('');
- activeCase={id:'case-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),date:$('date').value,unit:$('unit').value,deviceId:$('deviceSelect').value||'',model:modelName(),symptom:symptoms[model].find(s=>s[0]===symptom)[1],symptomId:symptom,when:$('when').value,display:$('display').value,signal,checks:vals,notes:$('notes').value,actionTaken:$('actionTaken').value,conclusion:$('conclusion').value,evidence:$('evidence').value,operationalStatus:$('operationalStatus').value,statusReason:$('statusReason').value,causes,summary};
+ activeCase={id:'case-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),date:$('date').value,unit:$('unit').value,deviceId:$('deviceSelect').value||'',model:modelName(),symptom:symptoms[model].find(s=>s[0]===symptom)[1],symptomId:symptom,when:$('when').value,display:$('display').value,signal,checks:vals,notes:$('notes').value,actionTaken:$('actionTaken').value,conclusion:$('conclusion').value,evidence:$('evidence').value,operationalStatus:$('operationalStatus').value,statusReason:$('statusReason').value,matrixFindings,causes,summary};
  $('outcome').classList.remove('hidden');$('outcome').scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('evaluate').onclick=evaluate;
-function collectCurrent(){if(!activeCase)return null;Object.assign(activeCase,{date:$('date').value,unit:$('unit').value,when:$('when').value,display:$('display').value,notes:$('notes').value,actionTaken:$('actionTaken').value,conclusion:$('conclusion').value,evidence:$('evidence').value,operationalStatus:$('operationalStatus').value,statusReason:$('statusReason').value});return activeCase;}
+function collectCurrent(){if(!activeCase)return null;Object.assign(activeCase,{date:$('date').value,unit:$('unit').value,when:$('when').value,display:$('display').value,notes:$('notes').value,actionTaken:$('actionTaken').value,conclusion:$('conclusion').value,evidence:$('evidence').value,operationalStatus:$('operationalStatus').value,statusReason:$('statusReason').value,matrixFindings:activeCase.matrixFindings});return activeCase;}
 function getHistory(){try{const h=JSON.parse(localStorage.getItem('df_history')||'[]');return Array.isArray(h)?h:[]}catch(e){return []}}
 function setHistory(h){localStorage.setItem('df_history',JSON.stringify(h));renderHistory()}
 function statusLabel(s){return ({incomplete:'Contrôle à compléter',operational:'Opérationnel',reserve:'Opérationnel avec réserve',unavailable:'Indisponible'})[s]||'Non renseigné'}

@@ -57,3 +57,13 @@ MISE À JOUR v4 — 16/10/2026
 - Export complet JSON des fiches appareils et interventions ; import avec validation, conservation des données existantes et détection des doublons.
 - Le cache hors connexion a été incrémenté vers v4.
 - Le diagnostic reste une aide : le statut final doit respecter les procédures du bord et être validé par le responsable compétent.
+
+
+MISE À JOUR v5 — MATRICE « RELÈVEMENT STABLE MAIS FAUX »
+- Ajout d’un parcours guidé dédié pour RHOTHETA RT-300 et TAIYO TD-L1550A.
+- Contrôles ordonnés : validation du référentiel, caractérisation de l’écart, paramètres propres au modèle, installation/environnement, essai de précision.
+- Critères, interprétations et étapes suivantes explicités ; distinction entre faits documentés, déductions, anomalies observées et causes confirmées.
+- Champs de saisie du référentiel et du profil d’écart enregistrés dans la fiche de diagnostic.
+- Le parcours général pour les autres symptômes, le carnet de santé, l’historique, l’export JSON et l’impression sont conservés.
+- Cache hors connexion incrémenté vers v5.
+- Validation technique/terrain encore requise avant usage opérationnel.
